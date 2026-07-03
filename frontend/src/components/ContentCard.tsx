@@ -80,43 +80,38 @@ export function ContentCard({ content, onAction }: { content: Content; onAction:
     : truncateAddress(content.creator);
 
   return (
-    <div className="terminal-window fade-up">
-      <div className="terminal-header">
-        <span className="terminal-dot red"></span>
-        <span className="terminal-dot yellow"></span>
-        <span className="terminal-dot green"></span>
-        <span style={{ marginLeft: 8, color: "var(--text-dim)", fontSize: 11 }}>
-          content #{content.id}
+    <div className="card fade-up">
+      <div className="card-header">
+        <span>content #{content.id}</span>
+        <span style={{ marginLeft: "auto" }} className="tag">
+          {creatorLabel}
         </span>
       </div>
 
-      <div className="terminal-body">
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-          <span style={{ color: "var(--accent)", fontWeight: 600 }}>
-            {'>'} {content.contentURI ? content.contentURI.slice(0, 40) + (content.contentURI.length > 40 ? '...' : '') : 'no uri'}
+      <div className="card-body">
+        <div style={{ marginBottom: 16 }}>
+          <span className="mono" style={{ fontSize: 12, color: "#999", wordBreak: "break-all" }}>
+            {content.contentURI
+              ? content.contentURI.slice(0, 50) + (content.contentURI.length > 50 ? "..." : "")
+              : "no uri"}
           </span>
         </div>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-          <span style={{ color: "var(--text-dim)", fontSize: 11 }}>creator:</span>
-          <span style={{ color: "var(--cyan)", fontSize: 11 }}>{creatorLabel}</span>
-        </div>
-
-        <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+        <div style={{ display: "flex", gap: 24, marginBottom: 16 }}>
           {content.buyPrice > 0n && (
             <div>
-              <div style={{ color: "var(--text-dim)", fontSize: 10, marginBottom: 4 }}>BUY PRICE</div>
-              <div style={{ color: "var(--accent)", fontSize: 16, fontWeight: 600 }}>
+              <div style={{ color: "#555", fontSize: 10, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Buy</div>
+              <div style={{ fontSize: 20, fontWeight: 600 }}>
                 ${formatUSDC(content.buyPrice)}
               </div>
             </div>
           )}
           {content.rentPrice > 0n && (
             <div>
-              <div style={{ color: "var(--text-dim)", fontSize: 10, marginBottom: 4 }}>RENT PRICE</div>
-              <div style={{ color: "var(--text-secondary)", fontSize: 16, fontWeight: 600 }}>
+              <div style={{ color: "#555", fontSize: 10, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Rent</div>
+              <div style={{ fontSize: 20, fontWeight: 600 }}>
                 ${formatUSDC(content.rentPrice)}
-                <span style={{ color: "var(--text-dim)", fontSize: 10, fontWeight: 400 }}>
+                <span style={{ color: "#777", fontSize: 11, fontWeight: 400 }}>
                   /{formatDuration(content.rentDuration)}
                 </span>
               </div>
@@ -124,51 +119,29 @@ export function ContentCard({ content, onAction }: { content: Content; onAction:
           )}
         </div>
 
-        {isConnected && (
+        {isConnected ? (
           <div style={{ display: "flex", gap: 8 }}>
             {content.buyPrice > 0n && (
               <button
                 onClick={handleBuy}
-                disabled={loading !== null || hasAccess}
-                style={{
-                  background: hasAccess ? "var(--bg-tertiary)" : "transparent",
-                  border: `1px solid ${hasAccess ? "var(--text-dim)" : "var(--accent)"}`,
-                  color: hasAccess ? "var(--text-dim)" : "var(--accent)",
-                  padding: "6px 16px",
-                  fontSize: 12,
-                  cursor: loading === "buy" ? "wait" : hasAccess ? "default" : "pointer",
-                  borderRadius: 4,
-                  fontFamily: "inherit",
-                  opacity: loading === "buy" ? 0.6 : 1,
-                }}
+                disabled={loading !== null || !!hasAccess}
+                className="btn btn-primary"
               >
-                {hasAccess ? '✓ owned' : loading === 'buy' ? 'buying...' : `buy $${formatUSDC(content.buyPrice)}`}
+                {hasAccess ? "owned" : loading === "buy" ? "buying..." : `buy $${formatUSDC(content.buyPrice)}`}
               </button>
             )}
             {content.rentPrice > 0n && (
               <button
                 onClick={handleRent}
-                disabled={loading !== null || hasAccess}
-                style={{
-                  background: hasAccess ? "var(--bg-tertiary)" : "transparent",
-                  border: `1px solid ${hasAccess ? "var(--text-dim)" : "var(--cyan)"}`,
-                  color: hasAccess ? "var(--text-dim)" : "var(--cyan)",
-                  padding: "6px 16px",
-                  fontSize: 12,
-                  cursor: loading === "rent" ? "wait" : hasAccess ? "default" : "pointer",
-                  borderRadius: 4,
-                  fontFamily: "inherit",
-                  opacity: loading === "rent" ? 0.6 : 1,
-                }}
+                disabled={loading !== null || !!hasAccess}
+                className="btn"
               >
-                {hasAccess ? '✓ access' : loading === 'rent' ? 'renting...' : `rent $${formatUSDC(content.rentPrice)}`}
+                {hasAccess ? "has access" : loading === "rent" ? "renting..." : `rent $${formatUSDC(content.rentPrice)}`}
               </button>
             )}
           </div>
-        )}
-
-        {!isConnected && (
-          <div style={{ color: "var(--text-dim)", fontSize: 11, fontStyle: "italic" }}>
+        ) : (
+          <div style={{ color: "#555", fontSize: 12 }}>
             connect wallet to buy or rent
           </div>
         )}

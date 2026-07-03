@@ -54,9 +54,9 @@ export function Header() {
       position: "fixed",
       top: 0, left: 0, right: 0,
       zIndex: 100,
-      background: "rgba(10,10,15,0.85)",
+      background: "rgba(0,0,0,0.85)",
       backdropFilter: "blur(12px)",
-      borderBottom: "1px solid #1e1e2e",
+      borderBottom: "1px solid #222",
       padding: "0 24px",
       height: 56,
       display: "flex",
@@ -65,11 +65,11 @@ export function Header() {
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
         <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <span style={{ color: "#00ff41", fontWeight: 700, fontSize: 18 }}>◈</span>
-          <span style={{ color: "#e0e0e0", fontWeight: 600, fontSize: 16, letterSpacing: 1 }}>
+          <span className="mono" style={{ fontWeight: 700, fontSize: 20, color: "#fff" }}>◆</span>
+          <span style={{ color: "#e5e5e5", fontWeight: 600, fontSize: 16, letterSpacing: 0.5 }}>
             ArcEcho
           </span>
-          <span style={{ color: "#555577", fontSize: 11 }}>v0.1</span>
+          <span style={{ color: "#555", fontSize: 11 }}>v0.1</span>
         </a>
         <nav style={{ display: "flex", gap: 24 }}>
           {[
@@ -80,15 +80,15 @@ export function Header() {
               key={href}
               href={href}
               style={{
-                color: "#8888aa",
+                color: "#777",
                 fontSize: 13,
                 textDecoration: "none",
-                transition: "color 0.2s",
+                transition: "color 0.15s",
               }}
-              onMouseOver={e => e.currentTarget.style.color = "#00ff41"}
-              onMouseOut={e => e.currentTarget.style.color = "#8888aa"}
+              onMouseOver={e => e.currentTarget.style.color = "#fff"}
+              onMouseOut={e => e.currentTarget.style.color = "#777"}
             >
-              {'> '}{label}
+              {label}
             </a>
           ))}
         </nav>
@@ -97,21 +97,12 @@ export function Header() {
       <div>
         {isConnected && address ? (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ color: "#00ff41", fontSize: 12 }}>
+            <span className="mono" style={{ color: "#999", fontSize: 12 }}>
               {address.slice(0, 6)}...{address.slice(-4)}
             </span>
             <button
               onClick={() => disconnect()}
-              style={{
-                background: "transparent",
-                border: "1px solid #1e1e2e",
-                color: "#8888aa",
-                padding: "6px 14px",
-                fontSize: 12,
-                cursor: "pointer",
-                borderRadius: 4,
-                fontFamily: "inherit",
-              }}
+              className="btn"
             >
               disconnect
             </button>
@@ -119,25 +110,7 @@ export function Header() {
         ) : (
           <button
             onClick={handleConnect}
-            style={{
-              background: "transparent",
-              border: "1px solid #00ff41",
-              color: "#00ff41",
-              padding: "6px 16px",
-              fontSize: 12,
-              cursor: "pointer",
-              borderRadius: 4,
-              fontFamily: "inherit",
-              transition: "all 0.2s",
-            }}
-            onMouseOver={e => {
-              e.currentTarget.style.background = "rgba(0,255,65,0.1)";
-              e.currentTarget.style.boxShadow = "0 0 10px rgba(0,255,65,0.2)";
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.boxShadow = "none";
-            }}
+            className="btn btn-primary"
           >
             connect wallet
           </button>
