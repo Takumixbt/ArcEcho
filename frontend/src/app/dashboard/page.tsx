@@ -5,12 +5,135 @@ import { ACCESS_GATE_ADDRESS, ACCESS_GATE_ABI } from "@/lib/contracts";
 import { parseUnits } from "viem";
 import { useState } from "react";
 
+function Stepper({ value, onChange, step, min, placeholder }: {
+  value: string;
+  onChange: (v: string) => void;
+  step: number;
+  min: number;
+  placeholder: string;
+}) {
+  const num = parseFloat(value) || 0;
+  const inc = () => onChange((num + step).toFixed(2));
+  const dec = () => onChange(Math.max(min, num - step).toFixed(2));
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+      <button type="button" onClick={dec} disabled={num <= min}
+        style={{
+          width: 32, height: 38, border: "1px solid #222", borderRight: "none",
+          borderTopLeftRadius: 6, borderBottomLeftRadius: 6,
+          background: "transparent", color: num <= min ? "#333" : "#999",
+          cursor: num <= min ? "not-allowed" : "pointer",
+          fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center",
+          fontFamily: "inherit",
+        }}
+      >−</button>
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        type="number"
+        step={step}
+        min={min}
+        style={{
+          width: "100%", height: 38,
+          background: "#000", border: "1px solid #222", borderLeft: "none", borderRight: "none",
+          color: "#e5e5e5", padding: "0 4px", fontSize: 13,
+          borderRadius: 0, fontFamily: "inherit", outline: "none",
+          textAlign: "center",
+          MozAppearance: "textfield",
+        }}
+      />
+      <button type="button" onClick={inc}
+        style={{
+          width: 32, height: 38, border: "1px solid #222", borderLeft: "none",
+          borderTopRightRadius: 6, borderBottomRightRadius: 6,
+          background: "transparent", color: "#999",
+          cursor: "pointer", fontSize: 14,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontFamily: "inherit",
+        }}
+      >+</button>
+    </div>
+  );
+}
+
+function DurationStepper({ value, onChange }: {
+  value: { amount: string; unit: "days" | "months" };
+  onChange: (v: { amount: string; unit: "days" | "months" }) => void;
+}) {
+  const num = parseInt(value.amount) || 0;
+  const step = value.unit === "days" ? 1 : 1;
+  const inc = () => onChange({ ...value, amount: String(num + step) });
+  const dec = () => onChange({ ...value, amount: String(Math.max(1, num - step)) });
+
+  const toDays = value.unit === "months" ? num * 30 : num;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+        <button type="button" onClick={dec} disabled={num <= 1}
+          style={{
+            width: 32, height: 38, border: "1px solid #222", borderRight: "none",
+            borderTopLeftRadius: 6, borderBottomLeftRadius: 6,
+            background: "transparent", color: num <= 1 ? "#333" : "#999",
+            cursor: num <= 1 ? "not-allowed" : "pointer", fontSize: 14,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "inherit",
+          }}
+        >−</button>
+        <input
+          value={value.amount}
+          onChange={e => onChange({ ...value, amount: e.target.value })}
+          type="number"
+          min={1}
+          style={{
+            width: "100%", height: 38,
+            background: "#000", border: "1px solid #222", borderLeft: "none", borderRight: "none",
+            color: "#e5e5e5", padding: "0 4px", fontSize: 13,
+            borderRadius: 0, fontFamily: "inherit", outline: "none",
+            textAlign: "center",
+            MozAppearance: "textfield",
+          }}
+        />
+        <button type="button" onClick={inc}
+          style={{
+            width: 32, height: 38, border: "1px solid #222", borderLeft: "none",
+            borderTopRightRadius: 6, borderBottomRightRadius: 6,
+            background: "transparent", color: "#999",
+            cursor: "pointer", fontSize: 14,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "inherit",
+          }}
+        >+</button>
+        <select
+          value={value.unit}
+          onChange={e => onChange({ ...value, unit: e.target.value as "days" | "months" })}
+          style={{
+            marginLeft: 8, height: 38,
+            background: "#0a0a0a", border: "1px solid #222",
+            color: "#999", padding: "0 8px", fontSize: 12,
+            borderRadius: 6, fontFamily: "inherit", outline: "none",
+            cursor: "pointer",
+          }}
+        >
+          <option value="days">days</option>
+          <option value="months">months</option>
+        </select>
+      </div>
+      <div style={{ color: "#555", fontSize: 11 }}>
+        total: {toDays} days · {toDays * 86400}s on-chain
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const [buyPrice, setBuyPrice] = useState("");
   const [rentPrice, setRentPrice] = useState("");
-  const [rentDuration, setRentDuration] = useState("7");
+  const [rentDuration, setRentDuration] = useState({ amount: "7", unit: "days" as "days" | "months" });
   const [contentURI, setContentURI] = useState("");
   const [listing, setListing] = useState(false);
 
@@ -18,6 +141,10 @@ export default function Dashboard() {
     e.preventDefault();
     if (!isConnected || !address) return;
     setListing(true);
+
+    const days = rentDuration.unit === "months"
+      ? parseInt(rentDuration.amount) * 30
+      : parseInt(rentDuration.amount);
 
     try {
       await writeContractAsync({
@@ -27,13 +154,14 @@ export default function Dashboard() {
         args: [
           buyPrice ? parseUnits(buyPrice, 6) : 0n,
           rentPrice ? parseUnits(rentPrice, 6) : 0n,
-          BigInt(Number(rentDuration) * 86400),
+          BigInt(days * 86400),
           contentURI,
         ],
       });
       setBuyPrice("");
       setRentPrice("");
       setContentURI("");
+      setRentDuration({ amount: "7", unit: "days" });
     } catch (e) {
       console.error(e);
     }
@@ -78,56 +206,32 @@ export default function Dashboard() {
               <input
                 value={contentURI}
                 onChange={e => setContentURI(e.target.value)}
-                placeholder="https://example.com/content or ipfs://Qm..."
+                placeholder="https://example.com/content"
                 className="input"
                 required
               />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div>
                 <label style={{ display: "block", fontSize: 11, color: "#777", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
                   Buy Price (USDC)
                 </label>
-                <input
-                  value={buyPrice}
-                  onChange={e => setBuyPrice(e.target.value)}
-                  placeholder="0.00"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="input"
-                />
+                <Stepper value={buyPrice} onChange={setBuyPrice} step={0.5} min={0} placeholder="0" />
               </div>
               <div>
                 <label style={{ display: "block", fontSize: 11, color: "#777", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
                   Rent Price (USDC)
                 </label>
-                <input
-                  value={rentPrice}
-                  onChange={e => setRentPrice(e.target.value)}
-                  placeholder="0.00"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="input"
-                />
+                <Stepper value={rentPrice} onChange={setRentPrice} step={0.5} min={0} placeholder="0" />
               </div>
-              <div>
-                <label style={{ display: "block", fontSize: 11, color: "#777", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Rent Duration
-                </label>
-                <select
-                  value={rentDuration}
-                  onChange={e => setRentDuration(e.target.value)}
-                  className="select"
-                >
-                  <option value="7">7 days</option>
-                  <option value="14">14 days</option>
-                  <option value="30">30 days</option>
-                  <option value="90">90 days</option>
-                </select>
-              </div>
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: 11, color: "#777", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
+                Rent Duration
+              </label>
+              <DurationStepper value={rentDuration} onChange={setRentDuration} />
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
