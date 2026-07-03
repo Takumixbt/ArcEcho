@@ -73,12 +73,12 @@ export default function Dashboard() {
           <form onSubmit={handleList} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div>
               <label style={{ display: "block", fontSize: 11, color: "#777", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
-                Content URI
+                Content URL
               </label>
               <input
                 value={contentURI}
                 onChange={e => setContentURI(e.target.value)}
-                placeholder="ipfs://Qm..."
+                placeholder="https://example.com/content or ipfs://Qm..."
                 className="input"
                 required
               />
