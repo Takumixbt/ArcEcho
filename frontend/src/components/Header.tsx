@@ -1,52 +1,22 @@
 "use client";
 
-import { useAccount } from "wagmi";
-import { useEffect, useState } from "react";
-import { useConnect, useDisconnect } from "wagmi";
-
-function useAutoConnect() {
-  const { connect, connectors } = useConnect();
-  const { isConnected } = useAccount();
-  const [tried, setTried] = useState(false);
-
-  useEffect(() => {
-    if (tried || isConnected) return;
-    if (typeof window === "undefined") return;
-    if (typeof window.ethereum === "undefined") return;
-
-    const tryConnect = async () => {
-      try {
-        const hasAccounts = await window.ethereum?.request({ method: "eth_accounts" }) as string[] | undefined;
-        if (hasAccounts && hasAccounts.length > 0) {
-          const c = connectors.find((c) => c.type === "injected");
-          if (c) await connect({ connector: c });
-        }
-      } catch {
-        /* silent */
-      }
-      setTried(true);
-    };
-    tryConnect();
-  }, [tried, isConnected, connect, connectors]);
-}
+import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useEffect } from "react";
 
 export function Header() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
 
-  useAutoConnect();
+  useEffect(() => {
+    if (isConnected) return;
+    const injectedConnector = connectors.find((c) => c.type === "injected");
+    if (injectedConnector) connect({ connector: injectedConnector });
+  }, [connectors, connect, isConnected]);
 
-  const handleConnect = async () => {
-    const c = connectors.find((conn) => conn.type === "injected")
-      ?? connectors[0];
+  const handleConnect = () => {
+    const c = connectors.find((c) => c.type === "injected") ?? connectors[0];
     if (c) connect({ connector: c });
-    else if (typeof window.ethereum !== "undefined") {
-      try {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        window.location.reload();
-      } catch {}
-    }
   };
 
   return (
@@ -108,10 +78,7 @@ export function Header() {
             </button>
           </div>
         ) : (
-          <button
-            onClick={handleConnect}
-            className="btn btn-primary"
-          >
+          <button onClick={handleConnect} className="btn btn-primary">
             connect wallet
           </button>
         )}

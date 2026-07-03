@@ -7,7 +7,7 @@ export function Hero() {
   const { connect, connectors } = useConnect();
 
   const handleConnect = () => {
-    const c = connectors.find((conn) => conn.type === "injected") ?? connectors[0];
+    const c = connectors.find((c) => c.type === "injected") ?? connectors[0];
     if (c) connect({ connector: c });
   };
 

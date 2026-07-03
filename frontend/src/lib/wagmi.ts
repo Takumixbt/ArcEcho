@@ -1,4 +1,4 @@
-import { http, createConfig, cookieStorage, createStorage } from "wagmi";
+import { http, createConfig, cookieStorage, createStorage, injected } from "wagmi";
 import { defineChain } from "viem";
 
 export const arcTestnet = defineChain({
@@ -26,4 +26,5 @@ export const config = createConfig({
   transports: {
     [arcTestnet.id]: http(),
   },
+  connectors: [injected()],
 });
