@@ -45,5 +45,10 @@ explorer [testnet.arcscan.app](https://testnet.arcscan.app).
 
 ## Status
 
-Phase 1 (contracts) — in progress. Phase 2 (storefront frontend) and Phase 3 (testnet dogfood) not
-started.
+Phase 1 (contracts) — done, tested. Phase 2 (storefront frontend: catalog, creator dashboard, wallet
+connect) — done. Phase 3 (testnet dogfood) — in progress.
+
+Content gating note: `contentURI` is a plaintext pointer, hidden client-side until `hasAccess` is true.
+That deters casual scraping but isn't real access control — the registry mapping is public on-chain, so
+anyone querying the contract directly can read it. Real gating needs the asset itself encrypted, with
+the decryption key served by a gateway that checks `hasAccess` before releasing it. Not built yet.
