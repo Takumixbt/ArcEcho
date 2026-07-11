@@ -54,6 +54,16 @@ describe("AccessGate", () => {
     expect(await gate.hasAccess(contentId, renter.address)).to.equal(false);
   });
 
+  it("rejects buying content the buyer already owns", async () => {
+    const { gate, usdc, buyer, contentId, BUY_PRICE } = await deploy();
+
+    await usdc.connect(buyer).approve(await gate.getAddress(), BUY_PRICE * 2n);
+    await usdc.mint(buyer.address, BUY_PRICE);
+    await gate.connect(buyer).buy(contentId);
+
+    await expect(gate.connect(buyer).buy(contentId)).to.be.revertedWith("already owned");
+  });
+
   it("rejects buying content that isn't for sale", async () => {
     const { gate, usdc, creator, renter } = await deploy();
 

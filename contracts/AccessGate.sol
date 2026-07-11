@@ -32,6 +32,7 @@ contract AccessGate is ContentRegistry {
         Content memory c = contents[contentId];
         require(c.creator != address(0), "content does not exist");
         require(c.buyPrice > 0, "not for sale");
+        require(!boughtAccess[contentId][msg.sender], "already owned");
 
         _settle(c.creator, c.buyPrice);
         boughtAccess[contentId][msg.sender] = true;
