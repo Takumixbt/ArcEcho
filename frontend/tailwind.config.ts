@@ -9,16 +9,24 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        mono: ["JetBrains Mono", "monospace"],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Instrument Serif", "Georgia", "serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "monospace"],
       },
       colors: {
-        arc: {
-          bg: "#0a0a0f",
-          surface: "#111118",
-          border: "#1e1e2e",
-          accent: "#00ff41",
-          cyan: "#00d4ff",
+        background: "#050505",
+        foreground: "#f5f5f5",
+        muted: {
+          DEFAULT: "rgba(245,245,245,0.55)",
+          dim: "rgba(245,245,245,0.32)",
         },
+        border: {
+          DEFAULT: "rgba(245,245,245,0.1)",
+          strong: "rgba(245,245,245,0.2)",
+        },
+      },
+      maxWidth: {
+        site: "1400px",
       },
     },
   },

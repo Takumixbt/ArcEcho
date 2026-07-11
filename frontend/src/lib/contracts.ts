@@ -1,4 +1,10 @@
-export const ACCESS_GATE_ADDRESS = "0x0000000000000000000000000000000000000000";
+export const ACCESS_GATE_ADDRESS =
+  (process.env.NEXT_PUBLIC_ACCESS_GATE_ADDRESS as `0x${string}`) ||
+  "0x0000000000000000000000000000000000000000";
+
+export const USDC_ADDRESS =
+  (process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`) ||
+  "0x0000000000000000000000000000000000000000";
 
 export const ACCESS_GATE_ABI = [
   {
@@ -110,5 +116,28 @@ export const ACCESS_GATE_ABI = [
       { name: "contentURI", type: "string", indexed: false, internalType: "string" },
     ],
     anonymous: false,
+  },
+] as const;
+
+export const ERC20_ABI = [
+  {
+    type: "function",
+    name: "approve",
+    inputs: [
+      { name: "spender", type: "address", internalType: "address" },
+      { name: "amount", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "allowance",
+    inputs: [
+      { name: "owner", type: "address", internalType: "address" },
+      { name: "spender", type: "address", internalType: "address" },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
   },
 ] as const;

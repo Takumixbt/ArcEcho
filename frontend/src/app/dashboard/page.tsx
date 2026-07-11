@@ -1,11 +1,17 @@
 "use client";
 
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount, useWriteContract, useConnect } from "wagmi";
 import { ACCESS_GATE_ADDRESS, ACCESS_GATE_ABI } from "@/lib/contracts";
 import { parseUnits } from "viem";
 import { useState } from "react";
 
-function Stepper({ value, onChange, step, min, placeholder }: {
+function Stepper({
+  value,
+  onChange,
+  step,
+  min,
+  placeholder,
+}: {
   value: string;
   onChange: (v: string) => void;
   step: number;
@@ -17,112 +23,87 @@ function Stepper({ value, onChange, step, min, placeholder }: {
   const dec = () => onChange(Math.max(min, num - step).toFixed(2));
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-      <button type="button" onClick={dec} disabled={num <= min}
-        style={{
-          width: 32, height: 38, border: "1px solid #222", borderRight: "none",
-          borderTopLeftRadius: 6, borderBottomLeftRadius: 6,
-          background: "transparent", color: num <= min ? "#333" : "#999",
-          cursor: num <= min ? "not-allowed" : "pointer",
-          fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: "inherit",
-        }}
-      >−</button>
+    <div className="stepper">
+      <button type="button" onClick={dec} disabled={num <= min}>
+        −
+      </button>
       <input
+        className="input"
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         type="number"
         step={step}
         min={min}
-        style={{
-          width: "100%", height: 38,
-          background: "#000", border: "1px solid #222", borderLeft: "none", borderRight: "none",
-          color: "#e5e5e5", padding: "0 4px", fontSize: 13,
-          borderRadius: 0, fontFamily: "inherit", outline: "none",
-          textAlign: "center",
-          MozAppearance: "textfield",
-        }}
       />
-      <button type="button" onClick={inc}
-        style={{
-          width: 32, height: 38, border: "1px solid #222", borderLeft: "none",
-          borderTopRightRadius: 6, borderBottomRightRadius: 6,
-          background: "transparent", color: "#999",
-          cursor: "pointer", fontSize: 14,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: "inherit",
-        }}
-      >+</button>
+      <button type="button" onClick={inc}>
+        +
+      </button>
     </div>
   );
 }
 
-function DurationStepper({ value, onChange }: {
+function DurationStepper({
+  value,
+  onChange,
+}: {
   value: { amount: string; unit: "days" | "months" };
   onChange: (v: { amount: string; unit: "days" | "months" }) => void;
 }) {
   const num = parseInt(value.amount) || 0;
-  const step = value.unit === "days" ? 1 : 1;
+  const step = 1;
   const inc = () => onChange({ ...value, amount: String(num + step) });
-  const dec = () => onChange({ ...value, amount: String(Math.max(1, num - step)) });
-
+  const dec = () =>
+    onChange({ ...value, amount: String(Math.max(1, num - step)) });
   const toDays = value.unit === "months" ? num * 30 : num;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-        <button type="button" onClick={dec} disabled={num <= 1}
-          style={{
-            width: 32, height: 38, border: "1px solid #222", borderRight: "none",
-            borderTopLeftRadius: 6, borderBottomLeftRadius: 6,
-            background: "transparent", color: num <= 1 ? "#333" : "#999",
-            cursor: num <= 1 ? "not-allowed" : "pointer", fontSize: 14,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "inherit",
-          }}
-        >−</button>
+    <div className="flex flex-col gap-3">
+      <div className="duration-control">
+        <button
+          type="button"
+          className="duration-step-btn"
+          onClick={dec}
+          disabled={num <= 1}
+          aria-label="Decrease duration"
+        >
+          −
+        </button>
         <input
+          className="duration-amount"
           value={value.amount}
-          onChange={e => onChange({ ...value, amount: e.target.value })}
+          onChange={(e) => onChange({ ...value, amount: e.target.value })}
           type="number"
           min={1}
-          style={{
-            width: "100%", height: 38,
-            background: "#000", border: "1px solid #222", borderLeft: "none", borderRight: "none",
-            color: "#e5e5e5", padding: "0 4px", fontSize: 13,
-            borderRadius: 0, fontFamily: "inherit", outline: "none",
-            textAlign: "center",
-            MozAppearance: "textfield",
-          }}
+          aria-label="Duration amount"
         />
-        <button type="button" onClick={inc}
-          style={{
-            width: 32, height: 38, border: "1px solid #222", borderLeft: "none",
-            borderTopRightRadius: 6, borderBottomRightRadius: 6,
-            background: "transparent", color: "#999",
-            cursor: "pointer", fontSize: 14,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "inherit",
-          }}
-        >+</button>
-        <select
-          value={value.unit}
-          onChange={e => onChange({ ...value, unit: e.target.value as "days" | "months" })}
-          style={{
-            marginLeft: 8, height: 38,
-            background: "#0a0a0a", border: "1px solid #222",
-            color: "#999", padding: "0 8px", fontSize: 12,
-            borderRadius: 6, fontFamily: "inherit", outline: "none",
-            cursor: "pointer",
-          }}
+        <button
+          type="button"
+          className="duration-step-btn"
+          onClick={inc}
+          aria-label="Increase duration"
         >
-          <option value="days">days</option>
-          <option value="months">months</option>
-        </select>
+          +
+        </button>
+        <div className="duration-unit-toggle" role="group" aria-label="Duration unit">
+          <button
+            type="button"
+            className={value.unit === "days" ? "active" : ""}
+            onClick={() => onChange({ ...value, unit: "days" })}
+          >
+            days
+          </button>
+          <button
+            type="button"
+            className={value.unit === "months" ? "active" : ""}
+            onClick={() => onChange({ ...value, unit: "months" })}
+          >
+            months
+          </button>
+        </div>
       </div>
-      <div style={{ color: "#555", fontSize: 11 }}>
-        total: {toDays} days · {toDays * 86400}s on-chain
+      <div className="font-mono text-[11px] text-muted">
+        {toDays} day window · {toDays * 86400}s on-chain
       </div>
     </div>
   );
@@ -130,21 +111,35 @@ function DurationStepper({ value, onChange }: {
 
 export default function Dashboard() {
   const { address, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
   const { writeContractAsync } = useWriteContract();
   const [buyPrice, setBuyPrice] = useState("");
   const [rentPrice, setRentPrice] = useState("");
-  const [rentDuration, setRentDuration] = useState({ amount: "7", unit: "days" as "days" | "months" });
+  const [rentDuration, setRentDuration] = useState({
+    amount: "7",
+    unit: "days" as "days" | "months",
+  });
   const [contentURI, setContentURI] = useState("");
   const [listing, setListing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleConnect = () => {
+    const c = connectors.find((x) => x.type === "injected") ?? connectors[0];
+    if (c) connect({ connector: c });
+  };
 
   const handleList = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isConnected || !address) return;
     setListing(true);
+    setError(null);
+    setSuccess(false);
 
-    const days = rentDuration.unit === "months"
-      ? parseInt(rentDuration.amount) * 30
-      : parseInt(rentDuration.amount);
+    const days =
+      rentDuration.unit === "months"
+        ? parseInt(rentDuration.amount) * 30
+        : parseInt(rentDuration.amount);
 
     try {
       await writeContractAsync({
@@ -154,7 +149,7 @@ export default function Dashboard() {
         args: [
           buyPrice ? parseUnits(buyPrice, 6) : 0n,
           rentPrice ? parseUnits(rentPrice, 6) : 0n,
-          BigInt(days * 86400),
+          BigInt((days || 0) * 86400),
           contentURI,
         ],
       });
@@ -162,113 +157,242 @@ export default function Dashboard() {
       setRentPrice("");
       setContentURI("");
       setRentDuration({ amount: "7", unit: "days" });
-    } catch (e) {
-      console.error(e);
+      setSuccess(true);
+    } catch (err) {
+      const msg =
+        err && typeof err === "object" && "shortMessage" in err
+          ? String((err as { shortMessage: string }).shortMessage)
+          : err instanceof Error
+            ? err.message.slice(0, 140)
+            : "listing failed";
+      setError(msg);
     }
     setListing(false);
   };
 
   if (!isConnected) {
     return (
-      <main className="fade-up" style={{ padding: "120px 24px", maxWidth: 480, margin: "0 auto", textAlign: "center" }}>
-        <div style={{ fontSize: 24, color: "#555", marginBottom: 12 }}>◆</div>
-        <p style={{ color: "#777", fontSize: 14 }}>connect your wallet to access the creator dashboard</p>
+      <main className="min-h-screen relative overflow-hidden">
+        <div className="grid-overlay opacity-15">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={`h-${i}`} className="h-line" style={{ top: `${(i + 1) * (100 / 7)}%` }} />
+          ))}
+        </div>
+        <div className="relative z-10 container-wide pt-36 pb-24 max-w-3xl">
+          <span className="section-label mb-6">Creator studio</span>
+          <h1 className="font-display text-5xl lg:text-6xl tracking-tight mt-6 mb-6">
+            List work.
+            <br />
+            <span className="text-muted">Collect royalties.</span>
+          </h1>
+          <p className="text-lg text-muted max-w-lg mb-10 leading-relaxed">
+            Connect a wallet to publish buy/rent terms on Arc. Every settlement
+            pays you 95% in USDC — instantly, on-chain.
+          </p>
+          <button onClick={handleConnect} className="btn btn-primary btn-lg">
+            Connect Wallet
+          </button>
+        </div>
       </main>
     );
   }
 
-  const hasPrice = buyPrice || rentPrice;
+  const hasPrice = !!(buyPrice || rentPrice);
+  const previewBuy = buyPrice ? Number(buyPrice) : 0;
+  const previewRent = rentPrice ? Number(rentPrice) : 0;
+  const creatorBuy = previewBuy * 0.95;
+  const creatorRent = previewRent * 0.95;
 
   return (
-    <main style={{ padding: "100px 24px 80px", maxWidth: 800, margin: "0 auto" }}>
-      <div style={{ marginBottom: 40 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600, margin: "0 0 6px", letterSpacing: -0.3 }}>
-          Creator Dashboard
-        </h1>
-        <p className="mono" style={{ color: "#555", fontSize: 12, margin: 0 }}>
-          {address!.slice(0, 6)}...{address!.slice(-4)}
-        </p>
-      </div>
-
-      <div className="card">
-        <div className="card-header">
-          <span>List New Content</span>
-          <span style={{ marginLeft: "auto", fontSize: 10, color: "#555" }}>
-            Arc Testnet
-          </span>
+    <main className="pt-28 pb-28 min-h-screen">
+      <div className="container-wide">
+        {/* Header band */}
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-14 border-b border-white/10 pb-10">
+          <div>
+            <span className="section-label mb-6">Creator studio</span>
+            <h1 className="font-display text-4xl lg:text-6xl tracking-tight mt-6 mb-3">
+              Publish & earn
+            </h1>
+            <p className="text-muted max-w-xl leading-relaxed">
+              Set royalty terms once. ArcEcho settles every buy and rent in USDC
+              — 95% to you, 5% to the protocol.
+            </p>
+          </div>
+          <div className="flex flex-col items-start lg:items-end gap-2">
+            <div className="font-mono text-xs text-muted flex items-center gap-2">
+              <span className="live-dot" />
+              Arc Testnet
+            </div>
+            <div className="font-mono text-sm text-foreground/80">
+              {address!.slice(0, 6)}…{address!.slice(-4)}
+            </div>
+          </div>
         </div>
-        <div className="card-body">
-          <form onSubmit={handleList} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div>
-              <label style={{ display: "block", fontSize: 11, color: "#777", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
-                Content URL
-              </label>
-              <input
-                value={contentURI}
-                onChange={e => setContentURI(e.target.value)}
-                placeholder="https://example.com/content"
-                className="input"
-                required
-              />
-            </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <div>
-                <label style={{ display: "block", fontSize: 11, color: "#777", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Buy Price (USDC)
-                </label>
-                <Stepper value={buyPrice} onChange={setBuyPrice} step={0.5} min={0} placeholder="0" />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: 11, color: "#777", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
-                  Rent Price (USDC)
-                </label>
-                <Stepper value={rentPrice} onChange={setRentPrice} step={0.5} min={0} placeholder="0" />
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: "block", fontSize: 11, color: "#777", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>
-                Rent Duration
-              </label>
-              <DurationStepper value={rentDuration} onChange={setRentDuration} />
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <button
-                type="submit"
-                disabled={listing || !hasPrice}
-                className="btn btn-primary"
-              >
-                {listing ? "listing..." : "List Content"}
-              </button>
-              {!hasPrice && (
-                <span style={{ color: "#555", fontSize: 12 }}>
-                  set a buy or rent price to continue
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-10">
+          {/* Form */}
+          <div className="lg:col-span-7">
+            <div className="card">
+              <div className="card-header">
+                <span>New listing</span>
+                <span className="ml-auto font-mono text-[10px] tracking-widest">
+                  ON-CHAIN
                 </span>
-              )}
-            </div>
-          </form>
-        </div>
-      </div>
+              </div>
+              <div className="card-body p-6 lg:p-8">
+                <form onSubmit={handleList} className="flex flex-col gap-7">
+                  <div>
+                    <label className="block font-mono text-[10px] text-muted uppercase tracking-widest mb-2">
+                      Content URL
+                    </label>
+                    <input
+                      value={contentURI}
+                      onChange={(e) => setContentURI(e.target.value)}
+                      placeholder="ipfs://… or https://…"
+                      className="input"
+                      required
+                    />
+                    <p className="font-mono text-[11px] text-muted mt-2">
+                      Pointer to the work buyers unlock after payment
+                    </p>
+                  </div>
 
-      <div style={{ marginTop: 32, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-        <div className="card">
-          <div className="card-body" style={{ textAlign: "center", padding: "20px 16px" }}>
-            <div style={{ color: "#555", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Creator Share</div>
-            <div style={{ fontSize: 28, fontWeight: 600 }}>95%</div>
+                  <div className="grid sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block font-mono text-[10px] text-muted uppercase tracking-widest mb-2">
+                        Buy price (USDC)
+                      </label>
+                      <Stepper
+                        value={buyPrice}
+                        onChange={setBuyPrice}
+                        step={0.5}
+                        min={0}
+                        placeholder="0.00"
+                      />
+                      <p className="font-mono text-[11px] text-muted mt-2">
+                        Permanent rights · optional
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[10px] text-muted uppercase tracking-widest mb-2">
+                        Rent price (USDC)
+                      </label>
+                      <Stepper
+                        value={rentPrice}
+                        onChange={setRentPrice}
+                        step={0.5}
+                        min={0}
+                        placeholder="0.00"
+                      />
+                      <p className="font-mono text-[11px] text-muted mt-2">
+                        Time-boxed · optional
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-mono text-[10px] text-muted uppercase tracking-widest mb-2">
+                      Rent duration
+                    </label>
+                    <DurationStepper
+                      value={rentDuration}
+                      onChange={setRentDuration}
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4 pt-1 border-t border-white/10 pt-6">
+                    <button
+                      type="submit"
+                      disabled={listing || !hasPrice}
+                      className="btn btn-primary"
+                    >
+                      {listing ? "Publishing…" : "Publish listing"}
+                    </button>
+                    {!hasPrice && (
+                      <span className="font-mono text-xs text-muted">
+                        set a buy or rent price
+                      </span>
+                    )}
+                  </div>
+
+                  {error && (
+                    <div className="font-mono text-xs text-red-400 border border-red-500/20 px-3 py-2">
+                      {error}
+                    </div>
+                  )}
+                  {success && (
+                    <div className="font-mono text-xs border border-white/20 px-3 py-2 text-foreground/80">
+                      Listed — live in the content feed
+                    </div>
+                  )}
+                </form>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="card">
-          <div className="card-body" style={{ textAlign: "center", padding: "20px 16px" }}>
-            <div style={{ color: "#555", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Protocol Fee</div>
-            <div style={{ fontSize: 28, fontWeight: 600 }}>5%</div>
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-body" style={{ textAlign: "center", padding: "20px 16px" }}>
-            <div style={{ color: "#555", fontSize: 10, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Settlement</div>
-            <div style={{ fontSize: 28, fontWeight: 600 }}>USDC</div>
+
+          {/* Side panel */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            <div className="border border-white/10 p-6 lg:p-8 bg-white/[0.02]">
+              <div className="font-mono text-[10px] text-muted uppercase tracking-widest mb-4">
+                Royalty preview
+              </div>
+              <div className="font-display text-3xl mb-6 tracking-tight">
+                You keep 95%
+              </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-baseline border-b border-white/10 pb-3">
+                  <span className="text-sm text-muted">Buy → you receive</span>
+                  <span className="font-mono text-sm">
+                    {previewBuy > 0 ? `$${creatorBuy.toFixed(2)}` : "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline border-b border-white/10 pb-3">
+                  <span className="text-sm text-muted">Rent → you receive</span>
+                  <span className="font-mono text-sm">
+                    {previewRent > 0 ? `$${creatorRent.toFixed(2)}` : "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm text-muted">Protocol fee</span>
+                  <span className="font-mono text-sm">5%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-px bg-white/10">
+              {[
+                ["95%", "Creator"],
+                ["5%", "Protocol"],
+                ["USDC", "Settle"],
+              ].map(([v, l]) => (
+                <div key={l} className="bg-background p-5 text-center">
+                  <div className="font-display text-2xl mb-1">{v}</div>
+                  <div className="font-mono text-[10px] text-muted uppercase tracking-widest">
+                    {l}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="border border-white/10 p-6">
+              <div className="font-mono text-[10px] text-muted uppercase tracking-widest mb-3">
+                How it works
+              </div>
+              <ol className="space-y-3 text-sm text-muted leading-relaxed">
+                <li className="flex gap-3">
+                  <span className="font-mono text-foreground/50 shrink-0">01</span>
+                  Point to your work with a URI
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-mono text-foreground/50 shrink-0">02</span>
+                  Set buy and/or rent terms in USDC
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-mono text-foreground/50 shrink-0">03</span>
+                  Publish — royalties settle on every sale
+                </li>
+              </ol>
+            </div>
           </div>
         </div>
       </div>
